@@ -32,11 +32,13 @@ public class DinoGame extends ApplicationAdapter {
 
     private float[] cloudX;
 
-    private float lastTapTime = 0;
-    private static final float DOUBLE_TAP_THRESHOLD = 0.3f;
+    private static final float DOUBLE_TAP_INTERVAL = 0.2f;
+    private Timer.Task scheduledJumpTask;
+
 
     @Override
     public void create() {
+
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
@@ -57,20 +59,27 @@ public class DinoGame extends ApplicationAdapter {
 
         cloudX = new float[]{50, 300, 550};
 
-        GestureDetector gd = new GestureDetector(new GestureAdapter() {
+        GestureDetector gd = new GestureDetector(new GestureDetector.GestureAdapter() {
             @Override
             public boolean tap(float x, float y, int count, int button) {
-                float currentTime = System.currentTimeMillis();
-                float timeSinceLastTap = currentTime - lastTapTime;
-
-                if (timeSinceLastTap < DOUBLE_TAP_THRESHOLD) {
-                    // Es un doble tap
+                if (count == 1) {
+                    // 1er tap: programamos un salto dentro de DOUBLE_TAP_INTERVAL
+                    if (scheduledJumpTask != null) scheduledJumpTask.cancel();
+                    scheduledJumpTask = new Timer.Task() {
+                        @Override
+                        public void run() {
+                            player.requestJump();
+                        }
+                    };
+                    Timer.schedule(scheduledJumpTask, DOUBLE_TAP_INTERVAL);
+                }
+                else if (count == 2) {
+                    // 2º tap: cancelamos el salto y hacemos duck
+                    if (scheduledJumpTask != null) {
+                        scheduledJumpTask.cancel();
+                        scheduledJumpTask = null;
+                    }
                     player.requestDuck();
-                    lastTapTime = 0; // Reinicia
-                } else {
-                    // Es un tap simple, programa el salto
-                    scheduleJump(); // Usa el método con retraso
-                    lastTapTime = currentTime;
                 }
                 return true;
             }
@@ -122,16 +131,6 @@ public class DinoGame extends ApplicationAdapter {
         batch.end();
     }
 
-    private void scheduleJump() {
-        Timer.schedule(new Timer.Task() {
-            @Override
-            public void run() {
-                if (lastTapTime != 0) { // Si no hubo doble tap
-                    player.requestJump();
-                }
-            }
-        }, DOUBLE_TAP_THRESHOLD);
-    }
 
     private void update(float delta) {
         player.update(delta);
