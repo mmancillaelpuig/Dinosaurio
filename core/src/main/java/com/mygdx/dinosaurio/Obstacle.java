@@ -13,12 +13,10 @@ public class Obstacle {
     private String type;
     private float stateTime = 0;
 
-    // Constructor original que recibe frames y duración
-    public Obstacle(float startX, float startY, String type, TextureRegion[] frames, float speed, float scale, float frameDuration) {
+    public Obstacle(float startX, float startY, String type, TextureRegion[] frames, float scale, float frameDuration) {
         this.x = startX;
         this.y = startY;
         this.type = type;
-        this.speed = speed;
         this.scale = scale;
 
         animation = new Animation<>(frameDuration, frames);
@@ -28,9 +26,10 @@ public class Obstacle {
         bounds = new Rectangle(x, y, firstFrame.getRegionWidth() * scale, firstFrame.getRegionHeight() * scale);
     }
 
-    // Nuevo constructor para recibir Textures directamente y usar duración por defecto
     public Obstacle(float startX, float startY, String type, Texture[] textures, float speed, float scale) {
-        this(startX, startY, type, convertToRegions(textures), speed, scale, 0.1f);
+        this(startX, startY, type, convertToRegions(textures), scale, 0.1f);
+        this.speed = speed;
+
     }
 
     private static TextureRegion[] convertToRegions(Texture[] textures) {
@@ -62,5 +61,13 @@ public class Obstacle {
 
     public String getType() {
         return type;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    public float getSpeed() {
+        return speed;
     }
 }
